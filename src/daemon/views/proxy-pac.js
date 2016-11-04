@@ -4,7 +4,7 @@ const conf = require('../../conf')
 // Send direct all other traffic
 const simple =
 `function FindProxyForURL (url, host) {
-  if (dnsDomainIs(host, '.${conf.tld}')) {
+  if (dnsDomainIs(host, '${conf.tld}')) {
     return 'PROXY 127.0.0.1:${conf.port}';
   }
 
