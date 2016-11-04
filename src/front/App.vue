@@ -193,7 +193,7 @@ export default {
     href (id) {
       const { protocol, hostname } = window.location
       if (/hotel\./.test(hostname)) {
-        const tld = hostname.split('.').slice(-1)[0]
+        const tld = hostname.split('.').slice(1).join('.')
         return `${protocol}//${id}.${tld}`
       } else {
         return `/${id}`
