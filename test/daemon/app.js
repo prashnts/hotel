@@ -33,7 +33,7 @@ test.before(() => {
   // Fake server to respond to URL
   http.createServer((req, res) => {
     res.statusCode = 200
-    res.end()
+    res.end('ok')
   }).listen(4000)
 
   // Add server
@@ -80,6 +80,8 @@ test.before(() => {
   app.group = group
   Loader(group, { watch: false })
 })
+
+test.cb.after((t) => app.group.stopAll(t.end))
 
 //
 // Test daemon/vhosts/tld.js
@@ -139,6 +141,13 @@ test.cb('GET http://proxy.dev should return 502', (t) => {
     .get('/')
     .set('Host', 'proxy.dev')
     .expect(200, t.end)
+})
+
+test.cb('GET http://node.dev:4000 should proxy to localhost:4000', (t) => {
+  request(app)
+    .get('/')
+    .set('Host', 'node.dev:4000')
+    .expect(200, /ok/, t.end)
 })
 
 test.cb('GET http://unavailable-proxy.dev should return 502', (t) => {
@@ -252,6 +261,17 @@ test.cb('GET / should contain proxy env values', (t) => {
     .get('/')
     .set('Host', 'custom-env.dev')
     .expect(200, /http:\/\/127.0.0.1:2000\/proxy.pac/, t.end)
+})
+
+//
+// Test headers
+//
+
+test.cb('GET / should contain X-FORWARD headers', (t) => {
+  request(app)
+    .get('/')
+    .set('Host', 'node.dev')
+    .expect(200, /x-forwarded-host: node.dev/, t.end)
 })
 
 //

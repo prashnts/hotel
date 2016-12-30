@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.5.12
+
+* Add dark theme
+* Update `x-forward-port` header
+* Improve `ember-cli` and `livereload` support
+
+## 0.5.11
+
+* Add more `x-forward` headers
+
 ## 0.5.10
 
 * Pass `HTTP_PROXY` env to servers started by hotel

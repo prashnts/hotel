@@ -24,6 +24,7 @@ exitHook(() => {
   console.log('Stop daemon')
   proxy.close()
   app.close()
+  group.stopAll()
 
   console.log('Remove pid file')
   pidFile.remove()
@@ -52,7 +53,8 @@ const proxy = httpProxy.createServer({
     port: conf.port
   },
   ssl,
-  ws: true
+  ws: true,
+  xfwd: true
 })
 
 // See https://github.com/typicode/hotel/pull/61

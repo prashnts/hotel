@@ -9,6 +9,7 @@ const getPort = require('get-port')
 const matcher = require('matcher')
 const unquote = require('unquote')
 const respawn = require('respawn')
+const afterAll = require('after-all')
 const httpProxy = require('http-proxy')
 const serverReady = require('server-ready')
 const arrayFind = require('array-find')
@@ -23,7 +24,7 @@ class Group extends EventEmitter {
     super()
 
     this._list = {}
-    this._proxy = httpProxy.createProxyServer()
+    this._proxy = httpProxy.createProxyServer({ xfwd: true })
     this._proxy.on('error', this.handleProxyError)
   }
 
@@ -159,6 +160,18 @@ class Group extends EventEmitter {
     cb && cb()
   }
 
+  stopAll (cb) {
+    const next = afterAll(cb)
+
+    Object
+      .keys(this._list)
+      .forEach((key) => {
+        if (this._list[key].stop) {
+          this._list[key].stop(next())
+        }
+      })
+  }
+
   update (id, conf) {
     this.remove(id, () => this.add(id, conf))
   }
@@ -255,8 +268,16 @@ class Group extends EventEmitter {
   }
 
   proxy (req, res) {
-    const { hostname } = req
+    const [ hostname, port ] = req.headers.host && req.headers.host.split(':')
     const { item } = req.hotel
+
+    // Handle case where port is set
+    // http://app.dev:5000 should proxy to http://localhost:5000
+    if (port) {
+      const target = `http://127.0.0.1:${port}`
+      util.log(`Proxy http://${req.headers.host} to ${target}`)
+      return this._proxy.web(req, res, { target })
+    }
 
     // Make sure to send only one response
     const send = once(() => {
@@ -319,14 +340,16 @@ class Group extends EventEmitter {
   // Needed to proxy WebSocket from CONNECT
   handleUpgrade (req, socket, head) {
     if (req.headers.host) {
-      const [hostname] = req.headers.host.split(':')
+      const [hostname, port] = req.headers.host.split(':')
       const tld = new RegExp(`.${daemonConf.tld}$`)
       const id = this.resolve(hostname.replace(tld, ''))
       const item = this.find(id)
 
       if (item) {
         let target
-        if (item.start) {
+        if (port !== '80') {
+          target = `ws://127.0.0.1:${port}`
+        } else if (item.start) {
           target = `ws://127.0.0.1:${item.env.PORT}`
         } else {
           const { hostname } = url.parse(item.target)
@@ -348,6 +371,7 @@ class Group extends EventEmitter {
       const [hostname, port] = req.headers.host.split(':')
 
       // If https make socket go through https proxy on 2001
+      // TODO find a way to detect https and wss without relying on port number
       if (port === '443') {
         return tcpProxy.proxy(socket, daemonConf.port + 1, hostname)
       }
@@ -357,7 +381,10 @@ class Group extends EventEmitter {
       const item = this.find(id)
 
       if (item) {
-        if (item.start) {
+        if (port !== '80') {
+          util.log(`Connect - proxy socket to ${port}`)
+          tcpProxy.proxy(socket, port)
+        } else if (item.start) {
           const { PORT } = item.env
           util.log(`Connect - proxy socket to ${PORT}`)
           tcpProxy.proxy(socket, PORT)

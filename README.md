@@ -4,9 +4,17 @@
 
 ![](http://i.imgur.com/DrLjbIi.gif)
 
-It works everywhere (OS X, Linux, Windows) and with any server (Node, Go, Rails, PHP, ...).
-
 _Tip: if you don't enable local domains, hotel can still be used as a **catalog of local servers**._
+
+Hotel works great on any OS (OS X, Linux, Windows) and with __all servers :heart:__ 
+* Node (Express, Webpack)
+* PHP (Laravel, Symfony)
+* Ruby (Rails, Sinatra, Jekyll)
+* Python (Django)
+* Docker
+* Go
+* Apache, Nginx
+* ...
 
 ## Video
 
@@ -32,7 +40,17 @@ _Tip: if you don't enable local domains, hotel can still be used as a **catalog 
 npm install -g hotel && hotel start
 ```
 
-If you don't have Node installed, use [brew](http://brew.sh) `brew install node`, [nvm](https://github.com/creationix/nvm) `nvm install stable` or go to [nodejs.org](https://nodejs.org).
+Hotel requires Node to be installed, if you don't have it, you can simply install it using one of the following method.
+
+```sh
+# http://brew.sh
+brew install node
+
+# https://github.com/creationix/nvm
+nvm install stable
+```
+
+You can also visit https://nodejs.org.
 
 ## Quick start
 
@@ -75,6 +93,7 @@ https://two.dev
 Using other servers? Here are some examples to get you started :)
 
 ```bash
+hotel add 'ember server'
 hotel add 'jekyll serve --port $PORT'
 hotel add 'rails server -p $PORT -b 127.0.0.1'
 hotel add 'python -m SimpleHTTPServer $PORT'
