@@ -1,5 +1,14 @@
 # Change Log
 
+## Unreleased
+
+* Fix proxying to `https` target `hotel add https://example.com`
+* Log proxy errors
+
+## 0.5.13
+
+* Fix `hotel add` CLI bug
+
 ## 0.5.12
 
 * Add dark theme
