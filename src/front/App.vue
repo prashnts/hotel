@@ -199,7 +199,12 @@ export default {
       fetch(`/_/servers/${id}/stop`, { method: 'POST' })
     },
     href (id) {
-      const { protocol, hostname } = window.location
+      const item = this.list[id]
+      let { protocol, hostname } = window.location
+      console.log(item)
+      if (item.env && item.env.NO_HTTPS) {
+        protocol = 'http:'
+      }
       if (/hotel\./.test(hostname)) {
         const tld = hostname.split('.').slice(1).join('.')
         return `${protocol}//${id}.${tld}`

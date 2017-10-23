@@ -24,9 +24,7 @@ class Group extends EventEmitter {
     super()
 
     this._list = {}
-    this._proxy = httpProxy.createProxyServer({
-      xfwd: true
-    })
+    this._proxy = httpProxy.createProxyServer({ xfwd: true })
     this._proxy.on('error', this.handleProxyError)
   }
 
@@ -204,10 +202,14 @@ class Group extends EventEmitter {
   // Middlewares
   //
 
-  handleProxyError (err, req, res) {
-    util.log('Proxy error -', err.message)
-    const msg = errorMsg(err, req.hotel.item)
-    res.status(502).send(msg)
+  handleProxyError (_, req, res) {
+    util.log('Proxy error')
+    try {
+      const msg = errorMsg(req.hotel.item)
+      res.status(502).send(msg)
+    } catch (e) {
+      res.end()
+    }
   }
 
   exists (req, res, next) {
@@ -283,16 +285,8 @@ class Group extends EventEmitter {
 
     // Make sure to send only one response
     const send = once(() => {
-      const isHTTPS = /^https:\/\//.test(item.target)
-      util.log(
-        `Proxy http://${hostname} to ${item.target}`,
-        isHTTPS ? '(changeOrigin: true)' : ''
-      )
-      this._proxy.web(req, res, {
-        target: item.target,
-        // https won't work if host doesn't match certificate, so we're changing it
-        changeOrigin: isHTTPS
-      })
+      util.log(`Proxy http://${hostname} to ${item.target}`)
+      this._proxy.web(req, res, { target: item.target })
     })
 
     if (item.start) {
